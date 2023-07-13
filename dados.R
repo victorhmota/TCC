@@ -56,7 +56,30 @@ cresc_capital <- capital_trabalho
 cresc_capital <- cresc_capital %>% mutate(X1980 = X1980/X1970 - 1, 
                                       X1991 = X1991/capital_trabalho$X1980 - 1, 
                                       X2000 = X2000/capital_trabalho$X1991 - 1)
+cresc_capital <- cresc_capital %>% select(-X1970)
+
 df_capital <- pivot_longer(cresc_capital, 
                            cols = starts_with('X'), 
                            names_to = "ano",
                            values_to = "cresc_capital")
+#Escolaridade
+
+escolaridade <- read.csv('escolaridade.csv', skip = 1)
+
+var_escolaridade <- escolaridade
+var_escolaridade <- var_escolaridade %>% mutate(X1980 = X1980/X1970 - 1, 
+                                                X1991 = X1991/escolaridade$X1980 - 1)
+
+escolaridade <- escolaridade %>% select(-c(X1970, X))
+var_escolaridade <- var_escolaridade %>% select(-c(X, X1970))
+
+
+df_escolaridade <- pivot_longer(escolaridade, 
+                           cols = starts_with('X'), 
+                           names_to = "ano",
+                           values_to = "escolaridade")
+
+df_var_escolaridade <-  pivot_longer(var_escolaridade, 
+                                     cols = starts_with('X'), 
+                                     names_to = "ano",
+                                     values_to = "var_escolaridade")
