@@ -25,6 +25,18 @@ df_pop <- pivot_longer(cresc_pop,
 
 pea <- read.csv('PEA.csv', skip = 1)
 
+cresc_pea <- pea
+cresc_pea <- cresc_pea %>% mutate(X1980 = X1980/X1970 - 1, 
+                                  X1991 = X1991/pea$X1980 - 1, 
+                                  X2000 = X2000/pea$X1991 - 1)
+
+cresc_pea <- cresc_pea %>% select(-c(X, X1970))
+                                  
+df_pea <- pivot_longer(cresc_pea, 
+                       cols = starts_with('X'), 
+                       names_to = "ano",
+                       values_to = "cresc_pea")
+
 #Estoque de capital
 
 capital <- read.csv('capital.csv', skip = 1)
