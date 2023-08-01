@@ -15,7 +15,7 @@ cresc_pop <- cresc_pop %>% mutate(X1980 = X1980/X1970 - 1,
 
 cresc_pop <- cresc_pop %>% select(-'X1970')
 
-df_pop <- pivot_longer(cresc_pop, 
+df_cresc_pop <- pivot_longer(cresc_pop, 
                        cols = starts_with('X'), 
                        names_to = "ano",
                        values_to = "cresc_pop")
@@ -32,7 +32,7 @@ cresc_pea <- cresc_pea %>% mutate(X1980 = X1980/X1970 - 1,
 
 cresc_pea <- cresc_pea %>% select(-c(X, X1970))
                                   
-df_pea <- pivot_longer(cresc_pea, 
+df_cresc_pea <- pivot_longer(cresc_pea, 
                        cols = starts_with('X'), 
                        names_to = "ano",
                        values_to = "cresc_pea")
@@ -83,3 +83,26 @@ df_var_escolaridade <-  pivot_longer(var_escolaridade,
                                      cols = starts_with('X'), 
                                      names_to = "ano",
                                      values_to = "var_escolaridade")
+# População 15-64
+
+rd <- read.csv('RD.csv', skip = 1)
+
+rd <- rd %>% select(-X)
+
+df_wa <- rd %>% pivot_longer(cols = starts_with('X'),
+                              names_to = "ano",
+                              values_to = "rd") %>%
+                mutate(wa = 1/(rd+1))
+
+#Taxa de participação
+
+df_pea <- pea %>% pivot_longer(cols = starts_with('X'),
+                               names_to = "ano",
+                               values_to = "pea")
+df_pop <- pop %>% pivot_longer(cols = starts_with('X'),
+                               names_to = "ano",
+                               values_to = "pop")
+
+
+
+
