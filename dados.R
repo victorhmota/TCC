@@ -8,10 +8,10 @@ pop <- read.csv('pop.csv', skip = 1 )
 pop_mun <- pop %>% select(-c('X1996','X2007', 'X'))
 
 cresc_pop <- pop_mun
-cresc_pop <- cresc_pop %>% mutate(X1980 = X1980/X1970 - 1, 
-                                  X1991 = X1991/pop_mun$X1980 - 1, 
-                                  X2000 = X2000/pop_mun$X1991 - 1, 
-                                  X2010 = X2010/pop_mun$X2000 - 1)
+cresc_pop <- cresc_pop %>% mutate(X1980 = log(X1980/X1970), 
+                                  X1991 = log(X1991/pop_mun$X1980), 
+                                  X2000 = log(X2000/pop_mun$X1991), 
+                                  X2010 = log(X2010/pop_mun$X2000))
 
 cresc_pop <- cresc_pop %>% select(-'X1970')
 
@@ -27,9 +27,9 @@ pea <- read.csv('PEA.csv', skip = 1)
 pea <- pea %>% select(-X)
 
 cresc_pea <- pea
-cresc_pea <- cresc_pea %>% mutate(X1980 = X1980/X1970 - 1, 
-                                  X1991 = X1991/pea$X1980 - 1, 
-                                  X2000 = X2000/pea$X1991 - 1)
+cresc_pea <- cresc_pea %>% mutate(X1980 = log(X1980/X1970), 
+                                  X1991 = log(X1991/pea$X1980), 
+                                  X2000 = log(X2000/pea$X1991))
 
 cresc_pea <- cresc_pea %>% select(-c(X, X1970))
                                   
@@ -54,9 +54,10 @@ colnames(capital_trabalho) <- c('Sigla', 'Código', 'Município', 'X1970',
                                 'X1991', 'X2000')
 
 cresc_capital <- capital_trabalho
-cresc_capital <- cresc_capital %>% mutate(X1980 = X1980/X1970 - 1, 
-                                      X1991 = X1991/capital_trabalho$X1980 - 1, 
-                                      X2000 = X2000/capital_trabalho$X1991 - 1)
+cresc_capital <- cresc_capital %>% mutate(X1980 = log(X1980/X1970), 
+                                      X1991 = log(X1991/capital_trabalho$X1980), 
+                                      X2000 = log(X2000/capital_trabalho$X1991))
+
 cresc_capital <- cresc_capital %>% select(-X1970)
 
 df_capital <- pivot_longer(cresc_capital, 
@@ -68,8 +69,8 @@ df_capital <- pivot_longer(cresc_capital,
 escolaridade <- read.csv('escolaridade.csv', skip = 1)
 
 var_escolaridade <- escolaridade
-var_escolaridade <- var_escolaridade %>% mutate(X1980 = X1980/X1970 - 1, 
-                                                X1991 = X1991/escolaridade$X1980 - 1)
+var_escolaridade <- var_escolaridade %>% mutate(log(X1980 = X1980/X1970), 
+                                                X1991 = log(X1991/escolaridade$X1980))
 
 escolaridade <- escolaridade %>% select(-c(X1970, X))
 var_escolaridade <- var_escolaridade %>% select(-c(X, X1970))
@@ -115,8 +116,8 @@ renda <- read.csv('renda_per_capita.csv', skip = 1)
 
 cresc_renda <- renda %>% select(-X)
 
-cresc_renda <- cresc_renda %>% mutate(X2000 = X2000/X1991 - 1, 
-                                      X2010 = X2010/renda$X2000 - 1) %>% select(-X1991)
+cresc_renda <- cresc_renda %>% mutate(X2000 = log(X2000/X1991), 
+                                      X2010 = log(X2010/renda$X2000)) %>% select(-X1991)
                                     
 
 df_renda <- renda %>% select(-X) %>% pivot_longer(cols = starts_with('X'),
