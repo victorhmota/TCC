@@ -1,6 +1,7 @@
 library("tidyverse")
 library("basedosdados")
 library('ipeadatar')
+library(plm)
 
 
 #Taxa de crescimento da população
@@ -31,7 +32,7 @@ cresc_pea <- cresc_pea %>% mutate(X1980 = X1980/X1970 - 1,
                                   X1991 = X1991/pea$X1980 - 1, 
                                   X2000 = X2000/pea$X1991 - 1)
 
-cresc_pea <- cresc_pea %>% select(-c(X, X1970))
+cresc_pea <- cresc_pea %>% select(-X1970)
                                   
 df_cresc_pea <- pivot_longer(cresc_pea, 
                        cols = starts_with('X'), 
@@ -134,5 +135,13 @@ df_renda_final <- left_join(df_renda, df_cresc_renda)
 df_1 <- left_join(df_prate, df_cresc_pea)
 df_2 <- left_join(df_1, df_cresc_pop)
 df_3 <- left_join(df_2, df_capital)
-df_final <- left_join(df_3, df_escolaridade)
+df_4 <- left_join(df_3, df_renda_final)
+df_final <- left_join(df_4, df_escolaridade)
 
+#Estimação sys-GMM
+df_painel <- pdata.frame(df_final, index = c("Código", "ano"))
+
+
+modelo_teste <- pgmm(cresc_renda ~ escolaridade + wa + cresc_capita, df_painel,
+                     model = "twosteps",
+                     transformation = "ld") 
