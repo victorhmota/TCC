@@ -109,7 +109,7 @@ df_pop <- pop_mun %>% pivot_longer(cols = starts_with('X'),
 df_trab_pop <- left_join(df_pop, df_pea) %>% mutate(trab_pop = pea/pop)
 
 df_prate <- left_join(df_trab_pop, df_wa) %>% mutate(prate = trab_pop/wa)
-
+ 
 #PIB (renda)
 
 renda <- read.csv('renda_per_capita.csv', skip = 1)
