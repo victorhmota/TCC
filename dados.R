@@ -145,3 +145,6 @@ df_painel <- pdata.frame(df_final, index = c("Código", "ano"))
 modelo_teste <- pgmm(cresc_renda ~ escolaridade + wa + cresc_capita, df_painel,
                      model = "twosteps",
                      transformation = "ld") 
+
+#https://search.r-project.org/CRAN/refmans/plm/html/pgmm.html
+
