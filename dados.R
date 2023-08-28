@@ -1,18 +1,18 @@
-library("tidyverse")
-library("basedosdados")
-library('ipeadatar')
+library(tidyverse)
+library(basedosdados)
+library(ipeadatar)
 library(plm)
+library(haven)
 
 
 #Taxa de crescimento da população
-pop <- read.csv('pop.csv', skip = 1 )
+pop <- read.csv('Dados IPEA//pop.csv', skip = 1 )
 pop_mun <- pop %>% select(-c('X1996','X2007', 'X'))
 
-cresc_pop <- pop_mun
-cresc_pop <- cresc_pop %>% mutate(X1980 = log(X1980/X1970), 
-                                  X1991 = log(X1991/pop_mun$X1980), 
-                                  X2000 = log(X2000/pop_mun$X1991), 
-                                  X2010 = log(X2010/pop_mun$X2000))
+pop_mun <-  pop_mun %>% mutate(X1980_cresc = log(X1980/X1970), 
+                                  X1991_cresc = log(X1991/pop_mun$X1980), 
+                                  X2000_cresc = log(X2000/pop_mun$X1991), 
+                                  X2010_cresc = log(X2010/pop_mun$X2000))
 
 cresc_pop <- cresc_pop %>% select(-'X1970')
 
