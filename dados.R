@@ -6,7 +6,8 @@ library(haven)
 
 ###### Obtendo os dados ##########
 
-#Taxa de crescimento da população
+### Taxa de crescimento da população ###
+
 pop <- read.csv('Dados IPEA/pop.csv', skip = 1 )
 pop_mun <- pop %>% select(-c('X1996','X2007', 'X'))
 
@@ -42,25 +43,75 @@ df_cresc_pop['ano'][df_cresc_pop['ano'] == "Y2010_cresc"] <- '2010'
 
 df_pop_final <- left_join(df_pop, df_cresc_pop)
 
-#Força de trabalho
+### Força de trabalho ###
 
-pea <- read.csv('PEA.csv', skip = 1)
+pea <- read.csv('Dados IPEA/PEA.csv', skip = 1)
 pea <- pea %>% select(-X)
 
-cresc_pea <- pea %>% mutate(X1980 = log(X1980/X1970), 
-                                  X1991 = log(X1991/pea$X1980), 
-                                  X2000 = log(X2000/pea$X1991))
+df_suporte <- pea %>% mutate(Y1970_cresc = NA,
+                            Y1980_cresc = log(X1980/X1970), 
+                            Y1991_cresc = log(X1991/X1980), 
+                            Y2000_cresc = log(X2000/X1991)) 
 
-cresc_pea <- cresc_pea %>% select(-X1970)
-                                  
-df_cresc_pea <- pivot_longer(cresc_pea, 
-                       cols = starts_with('X'), 
-                       names_to = "ano",
-                       values_to = "cresc_pea")
+df_suporte$Y2010_cresc <- rowMeans(df_suporte[, 9:11], na.rm = TRUE)
+df_suporte$X2010 <- (1+df_suporte$Y2010_cresc)*df_suporte$X2000
 
-#Estoque de capital
+df_pea <- df_suporte %>% select(c(Sigla, 
+                                  Código, 
+                                  Município,
+                                  X1970,
+                                  X1980,
+                                  X1991, 
+                                  X2000, 
+                                  X2010))
 
-capital <- read.csv('capital.csv', skip = 1)
+df_cresc_pea <- df_suporte %>% select(c(Sigla, 
+                                        Código, 
+                                        Município,
+                                        Y1970_cresc,
+                                        Y1980_cresc,
+                                        Y1991_cresc, 
+                                        Y2000_cresc, 
+                                        Y2010_cresc))
+df_pea_final <- pivot_longer(df_pea, 
+                             cols = starts_with('X'), 
+                             names_to = "ano",
+                             values_to = "pea")
+
+
+df_pea_final['ano'][df_pea_final['ano'] == "X1970"] <- '1970'
+df_pea_final['ano'][df_pea_final['ano'] == "X1980"] <- '1980'
+df_pea_final['ano'][df_pea_final['ano'] == "X1991"] <- '1991'
+df_pea_final['ano'][df_pea_final['ano'] == "X2000"] <- '2000'
+df_pea_final['ano'][df_pea_final['ano'] == "X2010"] <- '2010'
+
+df_cresc_pea_final <- pivot_longer(df_cresc_pea, 
+                                   cols = starts_with('Y'), 
+                                   names_to = "ano",
+                                   values_to = "cresc_pea")
+
+df_cresc_pea_final['ano'][df_cresc_pea_final['ano'] == "Y1970_cresc"] <- '1970'
+df_cresc_pea_final['ano'][df_cresc_pea_final['ano'] == "Y1980_cresc"] <- '1980'
+df_cresc_pea_final['ano'][df_cresc_pea_final['ano'] == "Y1991_cresc"] <- '1991'
+df_cresc_pea_final['ano'][df_cresc_pea_final['ano'] == "Y2000_cresc"] <- '2000'
+df_cresc_pea_final['ano'][df_cresc_pea_final['ano'] == "Y2010_cresc"] <- '2010'
+
+df_dados_pea <- left_join(df_pea_final, df_cresc_pea_final)
+
+
+### Estoque de capital ### 
+
+capital <- read.csv('Dados IPEA/capital.csv', skip = 1)
+
+df_suporte2 <- capital %>% mutate(Y1970_cresc = NA,
+                                  Y1980_cresc = log(X1980/X1970), 
+                                  Y1991_cresc = log(X1991/X1980), 
+                                  Y2000_cresc = log(X2000/X1991))
+
+df_suporte2$Y2010_cresc <- rowsMean(df_suporte2[, 10:12], rm.na = TRUE)
+
+
+
 
 capital_trabalho <- inner_join(capital, pea, by = 'Código')
 capital_trabalho <- capital_trabalho %>% mutate(k_1970 = X1970.x/X1970.y,
@@ -86,7 +137,7 @@ df_capital <- pivot_longer(cresc_capital,
                            values_to = "cresc_capital")
 #Escolaridade
 
-escolaridade <- read.csv('escolaridade.csv', skip = 1)
+escolaridade <- read.csv('Dados IPEA/escolaridade.csv', skip = 1)
 
 var_escolaridade <- escolaridade
 var_escolaridade <- var_escolaridade %>% mutate(log(X1980 = X1980/X1970), 
