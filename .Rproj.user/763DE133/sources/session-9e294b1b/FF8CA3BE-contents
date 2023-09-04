@@ -1,0 +1,20 @@
+
+#Carregando pacotes
+
+library(tidyverse)
+library(basedosdados)
+library(ipeadatar)
+library(plm)
+library(haven)
+
+setwd('C:\\Users\\WALCIR\\Documents\\VICTOR HUGO\\ECONOMIA\\TCC')
+
+######## Obtenção dos dados ###################
+
+####### Renda per capita #########
+
+censo_91 <- read_dta('1991_completo.dta')
+censo_00 <- read_dta('2000_completo.dta')
+censo_10 <- read_dta('2010_completo.dta')
+
+df_91 <- censo_91 %>% select(c('UF', 'codigo', 'codigo7','AMC', 'ano', 'populacao', ))

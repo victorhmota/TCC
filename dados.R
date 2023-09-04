@@ -4,31 +4,50 @@ library(ipeadatar)
 library(plm)
 library(haven)
 
+###### Obtendo os dados ##########
 
 #Taxa de crescimento da população
-pop <- read.csv('Dados IPEA//pop.csv', skip = 1 )
+pop <- read.csv('Dados IPEA/pop.csv', skip = 1 )
 pop_mun <- pop %>% select(-c('X1996','X2007', 'X'))
 
-pop_mun <-  pop_mun %>% mutate(X1980_cresc = log(X1980/X1970), 
-                                  X1991_cresc = log(X1991/pop_mun$X1980), 
-                                  X2000_cresc = log(X2000/pop_mun$X1991), 
-                                  X2010_cresc = log(X2010/pop_mun$X2000))
+pop_cresc <-  pop_mun %>% mutate(Y1970_cresc = NA,
+                               Y1980_cresc = log(X1980/X1970), 
+                               Y1991_cresc = log(X1991/pop_mun$X1980), 
+                               Y2000_cresc = log(X2000/pop_mun$X1991), 
+                               Y2010_cresc = log(X2010/pop_mun$X2000)) %>% select(c(Sigla, Código, Município, Y1970_cresc, Y1980_cresc, Y1991_cresc, Y2000_cresc, Y2010_cresc))
 
-cresc_pop <- cresc_pop %>% select(-'X1970')
 
-df_cresc_pop <- pivot_longer(cresc_pop, 
+df_pop <- pivot_longer(pop_mun, 
                        cols = starts_with('X'), 
                        names_to = "ano",
-                       values_to = "cresc_pop")
+                       values_to = "pop")
 
+df_pop['ano'][df_pop['ano'] == "X1970"] <- '1970'
+df_pop['ano'][df_pop['ano'] == "X1980"] <- '1980'
+df_pop['ano'][df_pop['ano'] == "X1991"] <- '1991'
+df_pop['ano'][df_pop['ano'] == "X2000"] <- '2000'
+df_pop['ano'][df_pop['ano'] == "X2010"] <- '2010'
+
+df_cresc_pop <- pivot_longer(pop_cresc, 
+                             cols = starts_with('Y'), 
+                             names_to = "ano",
+                             values_to = "cresc_pop")
+
+df_cresc_pop['ano'][df_cresc_pop['ano'] == "Y1970_cresc"] <- '1970'
+df_cresc_pop['ano'][df_cresc_pop['ano'] == "Y1980_cresc"] <- '1980'
+df_cresc_pop['ano'][df_cresc_pop['ano'] == "Y1991_cresc"] <- '1991'
+df_cresc_pop['ano'][df_cresc_pop['ano'] == "Y2000_cresc"] <- '2000'
+df_cresc_pop['ano'][df_cresc_pop['ano'] == "Y2010_cresc"] <- '2010'
+
+
+df_pop_final <- left_join(df_pop, df_cresc_pop)
 
 #Força de trabalho
 
 pea <- read.csv('PEA.csv', skip = 1)
 pea <- pea %>% select(-X)
 
-cresc_pea <- pea
-cresc_pea <- cresc_pea %>% mutate(X1980 = log(X1980/X1970), 
+cresc_pea <- pea %>% mutate(X1980 = log(X1980/X1970), 
                                   X1991 = log(X1991/pea$X1980), 
                                   X2000 = log(X2000/pea$X1991))
 
