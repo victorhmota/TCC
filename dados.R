@@ -3,13 +3,15 @@ library(basedosdados)
 library(ipeadatar)
 library(plm)
 library(haven)
+library(gmm)
+
 
 ###### Obtendo os dados ##########
 
 ### Taxa de crescimento da população ###
 
 pop <- read.csv('Dados IPEA/pop.csv', skip = 1 )
-pop_mun <- pop %>% select(-c('X1996','X2007', 'X'))
+pop_mun <- pop %>% select(-c('X1996','X2007', 'X')) %>% drop_na()
 
 pop_cresc <-  pop_mun %>% mutate(Y1970_cresc = NA,
                                Y1980_cresc = log(X1980/X1970), 
@@ -46,7 +48,7 @@ df_pop_final <- left_join(df_pop, df_cresc_pop)
 ### Força de trabalho ###
 
 pea <- read.csv('Dados IPEA/PEA.csv', skip = 1)
-pea <- pea %>% select(-X)
+pea <- pea %>% select(-X) %>% drop_na()
 
 df_suporte <- pea %>% mutate(Y1970_cresc = NA,
                             Y1980_cresc = log(X1980/X1970), 
@@ -109,8 +111,8 @@ df_suporte2 <- capital %>% mutate(Y1970_cresc = NA,
                                   Y2000_cresc = log(X2000/X1991))
 
 df_suporte2$Y2010_cresc <- rowMeans(df_suporte2[, 10:12], na.rm = TRUE)
-capital$X2010 <- (1+df_suporte$Y2010_cresc)*capital$X2000
-capital <- capital %>% select(-X)
+capital$X2010 <- (1+df_suporte2$Y2010_cresc)*capital$X2000
+capital <- capital %>% select(-X) %>% drop_na()
 
 df_capital <- pivot_longer(capital, 
                              cols = starts_with('X'), 
@@ -168,7 +170,7 @@ estados2 <- c('11' = "RO", '12' ="AC", '13' = 'AM', '14' = 'RO', '15' = 'PA', '1
              '51' = 'MT', '52' = 'GO', '53' = 'DF')
 
 
-escolaridade <- read.csv('Dados IPEA/escolaridade.csv', skip = 1) %>% select(-X)
+escolaridade <- read.csv('Dados IPEA/escolaridade.csv', skip = 1) %>% select(-X) %>% drop_na()
 dados_educ2010 <- read_dta('Dados/2010_completo.dta')
 dados_educ2000 <- read_dta('Dados/2000_completo.dta')
 
@@ -189,10 +191,10 @@ dados_escolaridade1 <- left_join(escolaridade, escolaridade2000)
 df_escolaridade <- left_join(dados_escolaridade1, escolaridade2010)
 
 df_suporte4 <- df_escolaridade %>% mutate(Y1970_cresc = NA,
-                                         Y1980_cresc = log(X1980/X1970), 
-                                         Y1991_cresc = log(X1991/X1980), 
-                                         Y2000_cresc = log(X2000/X1991),
-                                         Y2010_cresc = log(X2010/X2000)) 
+                                         Y1980_cresc = X1980 - X1970, 
+                                         Y1991_cresc = X1991 - X1980, 
+                                         Y2000_cresc = X2000 - X1991,
+                                         Y2010_cresc = X2010 - X2000) 
 
 df_esc <- df_suporte4 %>% select(c(Sigla, 
                                   Código, 
@@ -242,7 +244,7 @@ df_dados_esc <- left_join(df_esc_final, df_cresc_esc_final)
 
 rd <- read.csv('Dados IPEA/RD.csv', skip = 1)
 
-rd <- rd %>% select(-X)
+rd <- rd %>% select(-X) %>% drop_na()
 
 df_wa <- rd %>% pivot_longer(cols = starts_with('X'),
                               names_to = "ano",
@@ -272,7 +274,7 @@ df_prate <- left_join(df_trab_pop, df_wa) %>% mutate(prate = trab_pop/wa)
  
 ### Renda per capita ###
 
-renda <- read.csv('Dados IPEA/renda_per_capita.csv', skip = 1) %>% select(-X)
+renda <- read.csv('Dados IPEA/renda_per_capita.csv', skip = 1) %>% select(-X) %>% drop_na()
 renda$X1970 <- NA
 renda$X1980 <- NA
 
@@ -316,14 +318,36 @@ df_1 <- left_join(df_prate, df_capital_final)
 df_2 <- left_join(df_1, df_dados_esc)
 df_final <- left_join(df_2, df_renda_final)
 
+df_final2 <- df_final %>% filter((df_final$ano != "1970") & (df_final$ano != "1980"))
+
+df_final3 <- table(df_final2)
 
 #Estimação sys-GMM
-df_painel <- pdata.frame(df_final, index = c("Código", "ano"))
+
+df_painel <- pdata.frame(df_final3, index = c("Código", "ano"))
 
 
-modelo_teste <- pgmm(cresc_renda ~ escolaridade + wa + cresc_capita, df_painel,
-                     model = "twosteps",
-                     transformation = "ld") 
 
+modelo <- pgmm(log(renda) ~ log(lag(renda)) + lag(escolaridade) + log(lag(prate)) + log(lag(wa)) + cresc_escolaridade + cresc_cap_trab + cresc_pop + cresc_pea | log(lag(renda)) + lag(escolaridade) , 
+                     data = df_painel,
+                     model = 'twosteps',
+                     transformation = 'ld')
+
+g <- renda ~  escolaridade + prate + wa
+h <- ~ renda + escolaridade
+
+modelo_teste <- sysGmm(g, h, 
+                     data = df_painel)
+
+write_dta(
+  df_final2,
+  dados.dta,
+  version = 14,
+  label = attr(df_final2, "label"),
+  strl_threshold = 2045,
+  adjust_tz = TRUE
+)
+
+summary(modelo_teste)
 #https://search.r-project.org/CRAN/refmans/plm/html/pgmm.html
 
