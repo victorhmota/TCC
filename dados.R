@@ -320,7 +320,7 @@ df_final <- left_join(df_2, df_renda_final)
 
 df_final2 <- df_final %>% filter((df_final$ano != "1970") & (df_final$ano != "1980"))
 
-df_final3 <- table(df_final2)
+norte <- c('AM', 'PA', 'AC', 'TO', 'RR', 'RO', 'AP')
 
 #Estimação sys-GMM
 
@@ -328,25 +328,27 @@ df_painel <- pdata.frame(df_final3, index = c("Código", "ano"))
 
 
 
-modelo <- pgmm(log(renda) ~ log(lag(renda)) + lag(escolaridade) + log(lag(prate)) + log(lag(wa)) + cresc_escolaridade + cresc_cap_trab + cresc_pop + cresc_pea | log(lag(renda)) + lag(escolaridade) , 
-                     data = df_painel,
-                     model = 'twosteps',
-                     transformation = 'ld')
+#modelo <- pgmm(log(renda) ~ log(lag(renda)) + lag(escolaridade) + log(lag(prate)) + log(lag(wa)) + cresc_escolaridade + cresc_cap_trab + cresc_pop + cresc_pea | log(lag(renda)) + lag(escolaridade) , 
+                     #data = df_painel,
+                    # model = 'twosteps',
+                     #transformation = 'ld')
 
-g <- renda ~  escolaridade + prate + wa
-h <- ~ renda + escolaridade
+#g <- renda ~  escolaridade + prate + wa
+#h <- ~ renda + escolaridade
 
-modelo_teste <- sysGmm(g, h, 
-                     data = df_painel)
+#modelo_teste <- sysGmm(g, h, 
+                     #data = df_painel)
 
 write_dta(
   df_final2,
-  dados.dta,
+  "dados.dta",
   version = 14,
   label = attr(df_final2, "label"),
   strl_threshold = 2045,
   adjust_tz = TRUE
 )
+
+
 
 summary(modelo_teste)
 #https://search.r-project.org/CRAN/refmans/plm/html/pgmm.html
