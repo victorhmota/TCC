@@ -318,26 +318,27 @@ df_1 <- left_join(df_prate, df_capital_final)
 df_2 <- left_join(df_1, df_dados_esc)
 df_final <- left_join(df_2, df_renda_final)
 
-df_final2 <- df_final %>% filter((df_final$ano != "1970") & (df_final$ano != "1980"))
+df_final2 <- df_final %>% mutate(ln_renda = log(renda), ln_wa = log(wa), ln_prate = log(prate))
 
+df_final2 <- df_final2 %>% filter((df_final$ano != "1970") & (df_final$ano != "1980"))
+
+#df_f <- na.omit(df_final2)
+  
+  
 norte <- c('AM', 'PA', 'AC', 'TO', 'RR', 'RO', 'AP')
+nordeste <- c('MA','PI', 'CE', 'RN', 'PB', 'PE')
+centro_oeste <- c('GO', 'MT', 'MS', 'DF')
+sul <- c('SC', 'PR','RS')
+sudeste <- c('RJ','SP', 'MG', 'ES')
 
-#Estimação sys-GMM
+df_norte <- df_final2 %>% filter(df_final2$Sigla %in% norte)
+df_nordeste <- df_final2 %>% filter(df_final2$Sigla %in% nordeste)
+df_centro_oeste <- df_final2 %>% filter(df_final2$Sigla %in% centro_oeste)
+df_sul <- df_final2 %>% filter(df_final2$Sigla %in% sul)
+df_sudeste <- df_final2 %>% filter(df_final2$Sigla %in% sudeste)
 
-df_painel <- pdata.frame(df_final3, index = c("Código", "ano"))
 
-
-
-#modelo <- pgmm(log(renda) ~ log(lag(renda)) + lag(escolaridade) + log(lag(prate)) + log(lag(wa)) + cresc_escolaridade + cresc_cap_trab + cresc_pop + cresc_pea | log(lag(renda)) + lag(escolaridade) , 
-                     #data = df_painel,
-                    # model = 'twosteps',
-                     #transformation = 'ld')
-
-#g <- renda ~  escolaridade + prate + wa
-#h <- ~ renda + escolaridade
-
-#modelo_teste <- sysGmm(g, h, 
-                     #data = df_painel)
+### Criando dta ###
 
 write_dta(
   df_final2,
@@ -348,6 +349,52 @@ write_dta(
   adjust_tz = TRUE
 )
 
+write_dta(
+  df_norte,
+  "dados_norte.dta",
+  version = 14,
+  label = attr(df_norte, "label"),
+  strl_threshold = 2045,
+  adjust_tz = TRUE
+)
+
+write_dta(
+  df_nordeste,
+  "dados_nordeste.dta",
+  version = 14,
+  label = attr(df_nordeste, "label"),
+  strl_threshold = 2045,
+  adjust_tz = TRUE
+)
+
+write_dta(
+  df_centro_oeste,
+  "dados_centro_oeste.dta",
+  version = 14,
+  label = attr(df_centro_oeste, "label"),
+  strl_threshold = 2045,
+  adjust_tz = TRUE
+)
+
+
+write_dta(
+  df_sul,
+  "dados_sul.dta",
+  version = 14,
+  label = attr(df_sul, "label"),
+  strl_threshold = 2045,
+  adjust_tz = TRUE
+)
+
+
+write_dta(
+  df_sul,
+  "dados_sudeste.dta",
+  version = 14,
+  label = attr(df_sudeste, "label"),
+  strl_threshold = 2045,
+  adjust_tz = TRUE
+)
 
 
 summary(modelo_teste)
